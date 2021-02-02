@@ -10,9 +10,21 @@ import './index.css';
 //  Any JS expression may be placed within JSX braces.
 //  Passing props is how info flows in React apps from prents to children.
 
-/// The Square component renders a single <button>.
-class Square extends React.Component {
+/// The Square is a controlled component (by Board) and it renders a single <button>.
 
+class Square extends React.Component {
+    render() {
+        return (
+            <button className="square"
+                onClick={() => this.props.onClick()}>
+                {   this.props.value   }    
+            </button>
+        );  // Board stores the squares state and will pass this value through props.
+    }
+}
+
+/// The Board component renders 9 squares.
+class Board extends React.Component {
     //  Components use state's to remember things. 
     //      --> we want to remember that a square component got clicked and to fill it with an "X" mark.
     //  These states are private to each component that they're defined in.
@@ -21,23 +33,30 @@ class Square extends React.Component {
         super(props);   //  "In JavaScript classes, you need to always call super when defining the constructor of a subclass. 
                         //  All React component classes that have a constructor should start with a super(props) call."
         this.state = {
-            value: null,
+            squares: Array(9).fill(null),
         };
     }
 
-    render() {
-        return (
-            <button className="square" onClick={() => alert('click')}>
-                { this.props.value  }   
-            </button>
-        );  //  displays the value prop for this square.
-    }
-}
-
-/// The Board component renders 9 squares.
-class Board extends React.Component {
     renderSquare(i) {
-        return <Square value={i} />;    //pass a prop called 'value' from parent "Noard" to a child 'Square' component.
+        return (//  Added parentheses so that JS doesn't insert a semicolon after return and break the code.
+            //  In React, it’s conventional to use on[Event] names for props which represent events and 
+            //  handle[Event] for the methods which handle the events.
+            <Square
+                //  pass a prop called 'value' from parent "Board" to a child 'Square' component.
+                //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.
+                value={this.state.squares[i]} 
+                onClick={() => this.handleClick(i)}
+                //  Passing down a fx from Board to the Square.
+                //  Square should call this function when a square is clicked.
+            />
+        );
+        
+    }
+
+    handleClick(i) {
+        const squares = this.state.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
+        squares[i] = 'X';
+        this.setState({ squares: squares });
     }
 
     render() {
