@@ -78,12 +78,15 @@ class Game extends React.Component {
             history: [{
                 squares: Array(9).fill(null),
             }],
+            stepNumber: 0,
             xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.
         };
     }
 
+    //the properties below will update after every move.
     handleClick(i) {
-        const history = this.state.history;
+        const history = this.state.history.slice(0, this.state.stepNumber + 1); //  Changed so that if we go back in time and then make a new move from that point, 
+            //  then we disregard all the future history that would now become incorrect.
         const current = history[history.length - 1];
         const squares = current.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
         if (calculateWinner(squares) || squares[i]) {   //  if there is a winner or the square is already filled then return.
@@ -91,17 +94,41 @@ class Game extends React.Component {
         }
         squares[i] = this.state.xIsNext ? 'X' : 'O';
         this.setState({
-            history: history.concat([{  //concat() does NOT mutate the original array unlike push().
+            history: history.concat([{  //  concat() does NOT mutate the original array unlike push().
                 squares: squares,
-            }]),            
+            }]),
+            stepNumber: history.length, //line added to ensure that we do not get stuck showing the same move after a new one has been made.
             xIsNext: !this.state.xIsNext,   //  flip the boolean var.
+        });
+    }
+
+    jumpTo(step) {
+        this.setState({
+            stepNumber: step,   //  update stepNumber.
+            xIsNext: (step % 2) === 0,  //  assign xIsNext to true if the step is even.
         });
     }
 
     render() {
         const history = this.state.history;
-        const current = history[history.length - 1];
+        const current = history[this.state.stepNumber];    //  Changed from always rendering the last move to rendering the currently selected move according to stepNumber.
         const winner = calculateWinner(current.squares);
+
+        /*  "For each move in the game's history, we create a list item <li> which contains a button <button>. 
+         *  The button has a onClick handler which calls  method called this.jumpTo().
+         *  A list of the moves that have occurred in the game should be displayed.
+        */
+        const moves = history.map((step, move) => {
+            const desc = move ?
+                'Go to move #' + move :
+                'Go to game start';
+            return (
+                <li key={move}>
+                    <button onClick={() => this.jumpTo(move)}> {desc} </button>
+                </li>
+            );
+        });
+
         let status;
         if (winner) {
             status = 'Winner: ' + winner;
@@ -119,7 +146,7 @@ class Game extends React.Component {
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
-                    <ol>{/* TODO */}</ol>
+                    <ol>{moves}</ol>
                 </div>
             </div>
         );
