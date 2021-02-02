@@ -24,33 +24,7 @@ function Square(props) {
 }
 
 /// The Board component renders 9 squares.
-class Board extends React.Component {
-    // 'this' refers to the Board component.
-    //  Components use state's to remember things. 
-    //      --> we want to remember that a square component got clicked and to fill it with an "X" mark.
-    //  These states are private to each component that they're defined in.
-    //  States are initialized in the components constructors. (obviously)
-    constructor(props) {
-        super(props);   //  "In JavaScript classes, you need to always call super when defining the constructor of a subclass. 
-                        //  All React component classes that have a constructor should start with a super(props) call."
-        this.state = {
-            squares: Array(9).fill(null),
-            xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.
-        };
-    }
-
-    handleClick(i) {
-        const squares = this.state.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
-        if (calculateWinner(squares) || squares[i]) {   //  if there is a winner or the square is already filled then return.
-            return;
-        }
-        squares[i] = this.state.xIsNext ? 'X' : 'O';
-        this.setState({
-            squares: squares,
-            xIsNext: !this.state.xIsNext,   //  flip the boolean var.
-        });
-    }
-
+class Board extends React.Component {    
     renderSquare(i) {
         return (//  Added parentheses so that JS doesn't insert a semicolon after return and break the code.
             //  In React, it’s conventional to use on[Event] names for props which represent events and 
@@ -58,27 +32,17 @@ class Board extends React.Component {
             <Square
                 //  pass a prop called 'value' from parent "Board" to a child 'Square' component.
                 //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.
-                value={this.state.squares[i]} 
-                onClick={() => this.handleClick(i)}
+                value={this.props.squares[i]} 
+                onClick={() => this.props.onClick(i)}
                 //  Passing down a fx from Board to the Square.
                 //  Square should call this function when a square is clicked.
             />
-        );
-        
+        );    
     }
 
-    render() {
-        const winner = calculateWinner(this.state.squares);
-        let status;
-        if (winner) {
-            status = 'Winner: ' + winner;
-        } else {
-            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }
-
+    render() {      
         return (
             <div>
-                <div className="status">{status}</div>
                 <div className="board-row">
                     {this.renderSquare(0)}
                     {this.renderSquare(1)}
@@ -99,16 +63,62 @@ class Board extends React.Component {
     }
 }
 
-//  The Game component renders a board with placeholder values.
+//  The Game component is the top-level component which renders a board with placeholder values.
+//  Game has full control over the Board's data.
 class Game extends React.Component {
+    // 'this' refers to the Game component.
+    //  Components use state's to remember things. 
+    //      --> we want to remember that a square component got clicked and to fill it with an "X" mark.
+    //  These states are private to each component that they're defined in.
+    //  States are initialized in the components constructors. (obviously)
+    constructor(props) {
+        super(props);   //  "In JavaScript classes, you need to always call super when defining the constructor of a subclass. 
+                        //  All React component classes that have a constructor should start with a super(props) call."
+        this.state = {
+            history: [{
+                squares: Array(9).fill(null),
+            }],
+            xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.
+        };
+    }
+
+    handleClick(i) {
+        const history = this.state.history;
+        const current = history[history.length - 1];
+        const squares = current.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
+        if (calculateWinner(squares) || squares[i]) {   //  if there is a winner or the square is already filled then return.
+            return;
+        }
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        this.setState({
+            history: history.concat([{  //concat() does NOT mutate the original array unlike push().
+                squares: squares,
+            }]),            
+            xIsNext: !this.state.xIsNext,   //  flip the boolean var.
+        });
+    }
+
     render() {
+        const history = this.state.history;
+        const current = history[history.length - 1];
+        const winner = calculateWinner(current.squares);
+        let status;
+        if (winner) {
+            status = 'Winner: ' + winner;
+        } else {
+            status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+        }
+
         return (
             <div className="game">
                 <div className="game-board">
-                    <Board />
+                    <Board
+                        squares={current.squares}
+                        onClick={(i) => this.handleClick(i)}
+                    />
                 </div>
                 <div className="game-info">
-                    <div>{/* status */}</div>
+                    <div>{status}</div>
                     <ol>{/* TODO */}</ol>
                 </div>
             </div>
