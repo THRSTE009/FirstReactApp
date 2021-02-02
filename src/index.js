@@ -12,19 +12,20 @@ import './index.css';
 
 /// The Square is a controlled component (by Board) and it renders a single <button>.
 
-class Square extends React.Component {
-    render() {
-        return (
-            <button className="square"
-                onClick={() => this.props.onClick()}>
-                {   this.props.value   }    
-            </button>
-        );  // Board stores the squares state and will pass this value through props.
-    }
+//class Square extends React.Component {
+//    render() {
+function Square(props) {
+    return (
+        <button className="square"
+            onClick={props.onClick}>
+            {props.value}    
+        </button>
+    );  // Board stores the squares state and will pass this value through props.
 }
 
 /// The Board component renders 9 squares.
 class Board extends React.Component {
+    // 'this' refers to the Board component.
     //  Components use state's to remember things. 
     //      --> we want to remember that a square component got clicked and to fill it with an "X" mark.
     //  These states are private to each component that they're defined in.
@@ -34,7 +35,17 @@ class Board extends React.Component {
                         //  All React component classes that have a constructor should start with a super(props) call."
         this.state = {
             squares: Array(9).fill(null),
+            xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.
         };
+    }
+
+    handleClick(i) {
+        const squares = this.state.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
+        squares[i] = this.state.xIsNext ? 'X' : 'O';
+        this.setState({
+            squares: squares,
+            xIsNext: !this.state.xIsNext,   //  flip the boolean var.
+        });
     }
 
     renderSquare(i) {
@@ -53,14 +64,8 @@ class Board extends React.Component {
         
     }
 
-    handleClick(i) {
-        const squares = this.state.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
-        squares[i] = 'X';
-        this.setState({ squares: squares });
-    }
-
     render() {
-        const status = 'Next player: X';
+        const status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
 
         return (
             <div>
