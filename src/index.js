@@ -32,7 +32,7 @@ class Board extends React.Component {
             <Square
                 //  pass a prop called 'value' from parent "Board" to a child 'Square' component.
                 //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.
-                value={this.props.squares[i]} 
+                value={this.props.squares[i]}   
                 onClick={() => this.props.onClick(i)}
                 //  Passing down a fx from Board to the Square.
                 //  Square should call this function when a square is clicked.
@@ -76,10 +76,11 @@ class Game extends React.Component {
                         //  All React component classes that have a constructor should start with a super(props) call."
         this.state = {
             history: [{
-                squares: Array(9).fill(null),
+                squares: Array(9).fill(null),      
             }],
             stepNumber: 0,
-            xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.
+            xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.  
+            
         };
     }
 
@@ -89,16 +90,21 @@ class Game extends React.Component {
             //  then we disregard all the future history that would now become incorrect.
         const current = history[history.length - 1];
         const squares = current.squares.slice(); //.slice() --> creates a copy of the squares array to modify instead of modifying the existing array.
+
         if (calculateWinner(squares) || squares[i]) {   //  if there is a winner or the square is already filled then return.
             return;
         }
+
         squares[i] = this.state.xIsNext ? 'X' : 'O';
+
         this.setState({
             history: history.concat([{  //  concat() does NOT mutate the original array unlike push().
                 squares: squares,
+                location: calculateLocation(i),
             }]),
             stepNumber: history.length, //line added to ensure that we do not get stuck showing the same move after a new one has been made.
-            xIsNext: !this.state.xIsNext,   //  flip the boolean var.
+            xIsNext: !this.state.xIsNext,   //  flip the boolean var.  
+            
         });
     }
 
@@ -113,14 +119,13 @@ class Game extends React.Component {
         const history = this.state.history;
         const current = history[this.state.stepNumber];    //  Changed from always rendering the last move to rendering the currently selected move according to stepNumber.
         const winner = calculateWinner(current.squares);
-
         /*  "For each move in the game's history, we create a list item <li> which contains a button <button>. 
          *  The button has a onClick handler which calls  method called this.jumpTo().
          *  A list of the moves that have occurred in the game should be displayed.
         */
         const moves = history.map((step, move) => {
             const desc = move ?
-                'Go to move #' + move :
+                'Go to move #' + move + history[move].location:
                 'Go to game start';
             return (
                 <li key={move}>
@@ -159,6 +164,26 @@ ReactDOM.render(
     <Game />,
     document.getElementById('root')
 );
+
+function calculateLocation(i) {
+    let x, y;
+    if (i === 0 || i === 3 || i === 6) {
+        x = 0;
+    } else if (i === 1 || i === 4 || i === 7) {
+        x = 1;
+    } else {
+        x = 2;
+    }
+
+    if (i === 0 || i === 1 || i === 2) {
+        y = 0;
+    } else if (i === 3 || i === 4 || i === 5) {
+        y = 1;
+    } else {
+        y = 2;
+    }
+    return '(' + x + ', ' + y +')';
+}
 
 ///"Given an array of 9 squares, this function will check for a winner and return 'X', 'O', or null as appropriate."
 function calculateWinner(squares) {
