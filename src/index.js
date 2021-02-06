@@ -2,6 +2,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import './index.css';
 
+//reference for tutorial challenge solutions:   https://medium.com/@thekevinwang/react-%EF%B8%8F-tic-tac-toe-%EF%B8%8F%E2%83%A3-extras-88e68f025772
+
 //  render() returns a React element.
 //  This method returns a description of what you want to see on the screen.
 //  React developers can use a "JSX" to make React elements easier to write.
@@ -10,17 +12,17 @@ import './index.css';
 //  Any JS expression may be placed within JSX braces.
 //  Passing props is how info flows in React apps from prents to children.
 
-/// The Square is a controlled component (by Board) and it renders a single <button>.
-
-//class Square extends React.Component {
-//    render() {
+/// The Square is a FUNCTION COMPONENT which takes props as input and returns what should be rendered.
+//  The game's state is stored in the parent component 'XXX' instead of in each Square.
+//  The Board component can tell each Square what to display by passing a prop.
 function Square(props) {
     return (
+        //  When this square button is clicked, Square calls the Board property Onclick.
         <button className="square"
-            onClick={props.onClick}>
-            {props.value}    
+            onClick={props.onClick}>   
+            {props.value}       
         </button>
-    );  // Board stores the squares state and will pass this value through props.
+    );  
 }
 
 /// The Board component renders 9 squares.
@@ -30,12 +32,9 @@ class Board extends React.Component {
             //  In React, it’s conventional to use on[Event] names for props which represent events and 
             //  handle[Event] for the methods which handle the events.
             <Square
-                //  pass a prop called 'value' from parent "Board" to a child 'Square' component.
-                //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.
-                value={this.props.squares[i]}   
-                onClick={() => this.props.onClick(i)}
-                //  Passing down a fx from Board to the Square.
-                //  Square should call this function when a square is clicked.
+                //  Passing down two props (highlighted in teal) from Board (parent) to Square (child): 'value' and 'onClick'.
+                value={this.props.squares[i]}   //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.  
+                onClick={() => this.props.onClick(i)}   //  The onClick prop is a function that Square can call when clicked. 
             />
         );    
     }
@@ -64,6 +63,7 @@ class Board extends React.Component {
 }
 
 //  The Game component is the top-level component which renders a board with placeholder values.
+//  To enable Square and Board to communicate with each other we declare the shared state in their parent component 'Game'.
 //  Game has full control over the Board's data.
 class Game extends React.Component {
     // 'this' refers to the Game component.
@@ -129,8 +129,10 @@ class Game extends React.Component {
                 'Go to game start';
             return (
                 <li key={move}>
-                    <button onClick={() => this.jumpTo(move)}> {desc} </button>
-                </li>
+                    <button onClick={() => this.jumpTo(move)}>
+                        {move === this.state.stepNumber ? <b> {desc} </b> : desc}                       
+                    </button>
+                </li>   // if any button’s move matches Game‘s state.stepNumber, return a bold desc, or else just return a regular desc.
             );
         });
 
