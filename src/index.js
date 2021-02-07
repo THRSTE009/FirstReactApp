@@ -50,6 +50,7 @@ class Board extends React.Component {
 
     /// Creates an array called squares, with at most three squares, and makes a call to renderSquare to populate each square.
     renderSquares(n) {
+        // For-standard loop below:
         let squares = [];
         for (let i = n; i < n + 3; i++) {
             squares.push(this.renderSquare(i));
@@ -92,11 +93,11 @@ class Game extends React.Component {
             }],
             stepNumber: 0,
             xIsNext: true,  //  each time a player moves this var will be changed to determine which player goes next.  
-            
+            isDescending: true,
         };
     }
 
-    //the properties below will update after every move.
+ 
     handleClick(i) {
         const history = this.state.history.slice(0, this.state.stepNumber + 1); //  Changed so that if we go back in time and then make a new move from that point, 
             //  then we disregard all the future history that would now become incorrect.
@@ -115,8 +116,7 @@ class Game extends React.Component {
                 location: calculateLocation(i),
             }]),
             stepNumber: history.length, //line added to ensure that we do not get stuck showing the same move after a new one has been made.
-            xIsNext: !this.state.xIsNext,   //  flip the boolean var.  
-            
+            xIsNext: !this.state.xIsNext,   //  flip the boolean var.          
         });
     }
 
@@ -124,6 +124,13 @@ class Game extends React.Component {
         this.setState({
             stepNumber: step,   //  update stepNumber.
             xIsNext: (step % 2) === 0,  //  assign xIsNext to true if the step is even.
+        });
+    }
+
+    /// Flip history display order from Descending to Ascending or vice versa.
+    sortHistory() {
+        this.setState({
+            isDescending: !this.state.isDescending,
         });
     }
 
@@ -135,19 +142,20 @@ class Game extends React.Component {
          *  The button has a onClick handler which calls  method called this.jumpTo().
          *  A list of the moves that have occurred in the game should be displayed.
         */
+        
         const moves = history.map((step, move) => {
             const desc = move ?
-                'Go to move #' + move + history[move].location:
+                'Go to move #' + move + history[move].location :
                 'Go to game start';
             return (
                 <li key={move}>
                     <button onClick={() => this.jumpTo(move)}>
-                        {move === this.state.stepNumber ? <b> {desc} </b> : desc}                       
+                        {move === this.state.stepNumber ? <b> {desc} </b> : desc}
                     </button>
                 </li>   // if any button’s move matches Game‘s state.stepNumber, return a bold desc, or else just return a regular desc.
             );
-        });
-
+        });       
+     
         let status;
         if (winner) {
             status = 'Winner: ' + winner;
@@ -165,7 +173,11 @@ class Game extends React.Component {
                 </div>
                 <div className="game-info">
                     <div>{status}</div>
-                    <ol>{moves}</ol>
+
+                    <ol>{this.state.isDescending ? moves : moves.reverse()}</ol>                                   
+                    <button onClick={() => this.sortHistory()}>
+                        Sort by: {this.state.isDescending ? "Descending" : "Ascending"}
+                    </button>
                 </div>
             </div>
         );
