@@ -20,18 +20,27 @@ function Square(props) {
         //  When this square button is clicked, Square calls the Board property Onclick.
         <button className="square"
             onClick={props.onClick}>   
-            {props.value}       
+            {props.value}
         </button>
     );  
 }
 
 /// The Board component renders 9 squares.
 class Board extends React.Component {    
+
+    /// Populates the properties for a square.
     renderSquare(i) {
         return (//  Added parentheses so that JS doesn't insert a semicolon after return and break the code.
             //  In React, it’s conventional to use on[Event] names for props which represent events and 
             //  handle[Event] for the methods which handle the events.
             <Square
+                //  Whenever you use a loop it is important to provide a unique 'key' attribute otheriwse you get a warning:
+                //  "Each child in an array or iterator should have a  unique "key" prop."
+                //  The reason is that React uses these keys to track if items were changed, added, or removed.
+                //  Rule of thumb if an array can change use a unique ID instead of the index key to avoid bugs.
+                //  Source: https://www.telerik.com/blogs/beginners-guide-loops-in-react-jsx
+                key={"square" + i}               
+
                 //  Passing down two props (highlighted in teal) from Board (parent) to Square (child): 'value' and 'onClick'.
                 value={this.props.squares[i]}   //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.  
                 onClick={() => this.props.onClick(i)}   //  The onClick prop is a function that Square can call when clicked. 
@@ -39,24 +48,27 @@ class Board extends React.Component {
         );    
     }
 
-    render() {      
-        return (
+    /// Creates an array called squares, with at most three squares, and makes a call to renderSquare to populate each square.
+    renderSquares(n) {
+        let squares = [];
+        for (let i = n; i < n + 3; i++) {
+            squares.push(this.renderSquare(i));
+        }
+        return squares;
+    }
+
+    /// Sets up a div layout and makes a call to renderSquares to populate the squares that will be contained within this div.
+    renderRows(i) {
+        return <div className="board-row">{ this.renderSquares(i) }</div>;
+    }
+
+    /// Renders to the browser three rows of squares.
+    render() {          
+        return (            
             <div>
-                <div className="board-row">
-                    {this.renderSquare(0)}
-                    {this.renderSquare(1)}
-                    {this.renderSquare(2)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(3)}
-                    {this.renderSquare(4)}
-                    {this.renderSquare(5)}
-                </div>
-                <div className="board-row">
-                    {this.renderSquare(6)}
-                    {this.renderSquare(7)}
-                    {this.renderSquare(8)}
-                </div>
+                {this.renderRows(0)}        
+                {this.renderRows(3)} 
+                {this.renderRows(6)} 
             </div>
         );
     }
