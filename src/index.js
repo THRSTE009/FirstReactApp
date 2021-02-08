@@ -15,17 +15,22 @@ import './index.css';
 /// The Square is a FUNCTION COMPONENT which takes props as input and returns what should be rendered.
 //  The game's state is stored in the parent component 'XXX' instead of in each Square.
 //  The Board component can tell each Square what to display by passing a prop.
+
 function Square(props) {
     return (
         //  When this square button is clicked, Square calls the Board property Onclick.
-        <button className="square"
-            onClick={props.onClick}>   
+        <button
+            className={"square " + (props.isWinning ? "square--winning" : null)}
+                //  If this square has a property named isWinning that is true then change it's class name to "square square--winning".
+                // Must have a space between "square" and "square--winning" for CSS.
+            onClick={props.onClick}>
+            
             {props.value}
         </button>
     );  
 }
 
-/// The Board component renders 9 squares.
+/// The Board component is a child component of Game. It's purpose is to pass values to and render the nine squares.
 class Board extends React.Component {    
 
     /// Populates the properties for a square.
@@ -39,12 +44,14 @@ class Board extends React.Component {
                 //  The reason is that React uses these keys to track if items were changed, added, or removed.
                 //  Rule of thumb if an array can change use a unique ID instead of the index key to avoid bugs.
                 //  Source: https://www.telerik.com/blogs/beginners-guide-loops-in-react-jsx
-                key={"square" + i}               
 
-                //  Passing down two props (highlighted in teal) from Board (parent) to Square (child): 'value' and 'onClick'.
+                //  Passing down props (highlighted in teal) from Board (parent) to Square (child): e.g. 'value' and 'onClick':
+                //  That props values within the curly brackets are the the property's from Board which are being passed to Square.  NB!!!
+                key={"square" + i}             
                 value={this.props.squares[i]}   //  Each Square will now receive a value prop that will either be 'x', 'o', or null for empty squares.  
                 onClick={() => this.props.onClick(i)}   //  The onClick prop is a function that Square can call when clicked. 
-            />
+                isWinning={this.props.winningSquares.includes(i)}   // A Square is a winning square if it is included in the winningSquares array.
+                />
         );    
     }
 
@@ -137,7 +144,7 @@ class Game extends React.Component {
     render() {
         const history = this.state.history;
         const current = history[this.state.stepNumber];    //  Changed from always rendering the last move to rendering the currently selected move according to stepNumber.
-        const winner = calculateWinner(current.squares);
+        const winner = calculateWinner(current.squares);    //returns 'player' and 'line' properties.
         /*  "For each move in the game's history, we create a list item <li> which contains a button <button>. 
          *  The button has a onClick handler which calls  method called this.jumpTo().
          *  A list of the moves that have occurred in the game should be displayed.
@@ -157,16 +164,18 @@ class Game extends React.Component {
         });       
      
         let status;
-        if (winner) {
-            status = 'Winner: ' + winner;
+        if (winner) {   //if winner is NOT null.
+            status = 'Winner: ' + winner.player;
         } else {
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
         }
 
+        //  if winner is true, pass winner.line to its winningSquares prop, otherwise pass an empty array.
         return (
             <div className="game">
                 <div className="game-board">
                     <Board
+                        winningSquares={winner ? winner.line : []}   
                         squares={current.squares}
                         onClick={(i) => this.handleClick(i)}
                     />
@@ -226,7 +235,10 @@ function calculateWinner(squares) {
     for (let i = 0; i < lines.length; i++) {
         const [a, b, c] = lines[i];
         if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
-            return squares[a];
+            //  Keep track of the three winning squares in order to highlight them for challenge #5.
+            //  console.log(a + " " + b + " " + c);
+
+            return {player: squares[a], line: [a, b, c]};   //returning the value of the Winner 'squares[a] && the line which contains the winning squares.
         }
     }
     return null;
